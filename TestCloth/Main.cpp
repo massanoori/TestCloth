@@ -6,11 +6,32 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 //--------------------------------------------------------------------------------------
 #include "stdafx.h"
+#include "ObjectList.h"
+#include <memory>
 
 #pragma warning( disable : 4100 )
 
 using namespace DirectX;
 
+// module-local variables and definitions
+namespace
+{
+	ObjectList g_ObjectList;
+
+	class TestObject : public Object
+	{
+	private:
+		void UpdateImpl() override
+		{
+		}
+
+		void RenderImpl() const override
+		{
+			// OutputDebugStringW(DXUTGetFrameStats(true));
+			// OutputDebugStringW(L"\n");
+		}
+	};
+}
 
 //--------------------------------------------------------------------------------------
 // Reject any D3D11 devices that aren't acceptable by returning false
@@ -53,6 +74,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
+	g_ObjectList.Update();
 }
 
 
@@ -67,6 +89,8 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 
 	auto pDSV = DXUTGetD3D11DepthStencilView();
 	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
+
+	g_ObjectList.Render();
 }
 
 
@@ -129,6 +153,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 #if defined(DEBUG) | defined(_DEBUG)
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
+
+	g_ObjectList.Initialize();
+	g_ObjectList.AddObject(MakeObjectHandle<TestObject>());
 
 	// DXUT will create and use the best device
 	// that is available on the system depending on which D3D callbacks are set below
