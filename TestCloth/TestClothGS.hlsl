@@ -23,7 +23,7 @@ uint RecomposeID(in uint2 id)
 	return id.x + id.y * ClothResolution.x;
 }
 
-[maxvertexcount(6)]
+[maxvertexcount(8)]
 void main(point VS_OUTPUT Input[1], inout TriangleStream<GS_OUTPUT> triStream)
 {
 	uint id = Input[0].id;
@@ -33,28 +33,54 @@ void main(point VS_OUTPUT Input[1], inout TriangleStream<GS_OUTPUT> triStream)
 		float4 pos;
 		GS_OUTPUT Output;
 
-		pos = FETCH_POSITION(id);
-		pos.w = 1.0f;
-		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = FETCH_NORMAL(id);
-		triStream.Append(Output);
-
 		pos = FETCH_POSITION(id - 1);
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
 		Output.Normal = FETCH_NORMAL(id - 1);
 		triStream.Append(Output);
 
-		pos = FETCH_POSITION(id - ClothResolution.x);
+		pos = FETCH_POSITION(id);
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = FETCH_NORMAL(id - ClothResolution.x);
+		Output.Normal = FETCH_NORMAL(id);
 		triStream.Append(Output);
 
 		pos = FETCH_POSITION(id - ClothResolution.x - 1);
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
 		Output.Normal = FETCH_NORMAL(id - ClothResolution.x - 1);
+		triStream.Append(Output);
+	
+		pos = FETCH_POSITION(id - ClothResolution.x);
+		pos.w = 1.0f;
+		Output.Position = mul(mul(pos, WorldView), Projection);
+		Output.Normal = FETCH_NORMAL(id - ClothResolution.x);
+		triStream.Append(Output);
+
+		triStream.RestartStrip();
+
+		pos = FETCH_POSITION(id);
+		pos.w = 1.0f;
+		Output.Position = mul(mul(pos, WorldView), Projection);
+		Output.Normal = -FETCH_NORMAL(id);
+		triStream.Append(Output);
+
+		pos = FETCH_POSITION(id - 1);
+		pos.w = 1.0f;
+		Output.Position = mul(mul(pos, WorldView), Projection);
+		Output.Normal = -FETCH_NORMAL(id - 1);
+		triStream.Append(Output);
+
+		pos = FETCH_POSITION(id - ClothResolution.x);
+		pos.w = 1.0f;
+		Output.Position = mul(mul(pos, WorldView), Projection);
+		Output.Normal = -FETCH_NORMAL(id - ClothResolution.x);
+		triStream.Append(Output);
+
+		pos = FETCH_POSITION(id - ClothResolution.x - 1);
+		pos.w = 1.0f;
+		Output.Position = mul(mul(pos, WorldView), Projection);
+		Output.Normal = -FETCH_NORMAL(id - ClothResolution.x - 1);
 		triStream.Append(Output);
 
 		triStream.RestartStrip();

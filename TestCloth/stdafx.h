@@ -8,6 +8,8 @@
 #include "targetver.h"
 
 #include "DXUT.h"
+#include "DXUTcamera.h"
+#include "SDKmisc.h"
 
 #define WIN32_LEAN_AND_MEAN             // Windows ヘッダーから使用されていない部分を除外します。
 // Windows ヘッダー ファイル:

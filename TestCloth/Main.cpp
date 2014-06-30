@@ -18,6 +18,7 @@ using namespace DirectX;
 namespace
 {
 	ObjectList* g_pObjectList;
+	CModelViewerCamera g_Camera;
 
 	class TestObject : public Object
 	{
@@ -32,6 +33,14 @@ namespace
 			// OutputDebugStringW(L"\n");
 		}
 	};
+}
+
+//--------------------------------------------------------------------------------------
+// Get camera
+//--------------------------------------------------------------------------------------
+CModelViewerCamera* GetGlobalCamera()
+{
+	return &g_Camera;
 }
 
 //--------------------------------------------------------------------------------------
@@ -57,6 +66,10 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 //--------------------------------------------------------------------------------------
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
+	// initialize camera
+	g_Camera.SetViewParams(XMVectorSet(-1.0f, 0.0f, -3.0f, 1.0f),
+		XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+
 	// initialize object list
 	g_pObjectList->AddObject(MakeObjectHandle<TestObject>());
 	g_pObjectList->AddObject(CreateTestClothObject());
@@ -70,6 +83,9 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 //--------------------------------------------------------------------------------------
 HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChain* pSwapChain, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
+	g_Camera.SetProjParams(XM_PI * 0.25f,
+		1.0f * pBackBufferSurfaceDesc->Width / pBackBufferSurfaceDesc->Height,
+		0.01f, 10000.0f);
 	return S_OK;
 }
 

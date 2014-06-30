@@ -1,11 +1,10 @@
 #include "stdafx.h"
 #include "TestClothObject.h"
-#include "SDKmisc.h"
+#include "Globals.h"
 #include <memory>
 #include <amp.h>
 #include <amp_math.h>
 #include <amp_graphics.h>
-#include <DirectXMath.h>
 #include <boost/intrusive_ptr.hpp>
 
 namespace cc = concurrency;
@@ -125,8 +124,8 @@ private:
 			const float SQRT_2 = ccm::sqrtf(2.0f);
 			const ccg::float_4 CLOTH_POS00(-1.0f, 1.0f, 0.0f, 1.0f);
 			const ccg::float_4 CLOTH_POS01(1.0f, 1.0f, 0.0f, 1.0f);
-			const ccg::float_4 CLOTH_POS10(-1.0f, 1.0 - SQRT_2, SQRT_2, 1.0f);
-			const ccg::float_4 CLOTH_POS11(1.0f, 1.0 - SQRT_2, SQRT_2, 1.0f);
+			const ccg::float_4 CLOTH_POS10(-1.0f, 1.0f - SQRT_2, SQRT_2, 1.0f);
+			const ccg::float_4 CLOTH_POS11(1.0f, 1.0f - SQRT_2, SQRT_2, 1.0f);
 
 			positions[idx.global] =
 				nfx * nfy * CLOTH_POS00 +
@@ -484,35 +483,16 @@ private:
 
 	void InitializeConstantBuffer()
 	{
-		CB_TEST_CLOTH cbTestCloth;
-		cbTestCloth.WorldView = DirectX::XMMatrixLookAtLH(
-			DirectX::XMVectorSet(0.0f, 0.0f, -3.0f, 1.0f),
-			DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f),
-			DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f));
-		cbTestCloth.Projection = DirectX::XMMatrixPerspectiveFovLH(
-			DirectX::XMConvertToRadians(45.0f),
-			4.0f / 3.0f,
-			0.1f, 1000.0f);
-		cbTestCloth.ClothResolution.x = NDIM_HORIZONTAL;
-		cbTestCloth.ClothResolution.y = NDIM_VERTICAL;
-
-		cbTestCloth.WorldView = DirectX::XMMatrixTranspose(cbTestCloth.WorldView);
-		cbTestCloth.Projection = DirectX::XMMatrixTranspose(cbTestCloth.Projection);
-
 		D3D11_BUFFER_DESC constBufDesc;
 		ZeroMemory(&constBufDesc, sizeof(constBufDesc));
 		constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
 		constBufDesc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE;
-		constBufDesc.ByteWidth = sizeof(cbTestCloth);
+		constBufDesc.ByteWidth = sizeof(CB_TEST_CLOTH);
 		constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
-
-		D3D11_SUBRESOURCE_DATA constBufSubRes;
-		ZeroMemory(&constBufSubRes, sizeof(constBufSubRes));
-		constBufSubRes.pSysMem = &cbTestCloth;
 
 		ID3D11Buffer* pConstBuffer;
 		assert(SUCCEEDED(DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
-			&constBufSubRes, &pConstBuffer)));
+			nullptr, &pConstBuffer)));
 		boost::intrusive_ptr<ID3D11Buffer>(pConstBuffer, false)
 			.swap(m_pTestClothConstants);
 	}
@@ -521,7 +501,7 @@ private:
 	{
 		D3D11_RASTERIZER_DESC rasterizerDesc;
 		ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
-		rasterizerDesc.CullMode = D3D11_CULL_NONE;
+		rasterizerDesc.CullMode = D3D11_CULL_BACK;
 		rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 		rasterizerDesc.DepthClipEnable = TRUE;
 
@@ -604,6 +584,21 @@ private:
 	void RenderImpl() const override
 	{
 		auto pCTX = DXUTGetD3D11DeviceContext();
+
+		// update constant buffer
+		D3D11_MAPPED_SUBRESOURCE cbTestClothRes;
+		pCTX->Map(m_pTestClothConstants.get(),
+			0, D3D11_MAP_WRITE_DISCARD, 0,
+			&cbTestClothRes);
+		auto pCamera = GetGlobalCamera();
+		auto& cbTestCloth =
+			*reinterpret_cast<CB_TEST_CLOTH*>(cbTestClothRes.pData);
+		cbTestCloth.WorldView = DirectX::XMMatrixTranspose(pCamera->GetViewMatrix());
+		cbTestCloth.Projection = DirectX::XMMatrixTranspose(pCamera->GetProjMatrix());
+		cbTestCloth.ClothResolution.x = NDIM_HORIZONTAL;
+		cbTestCloth.ClothResolution.y = NDIM_VERTICAL;
+		pCTX->Unmap(m_pTestClothConstants.get(), 0);
+
 		pCTX->VSSetShader(m_pTestClothVS.get(),
 			nullptr, 0);
 		pCTX->GSSetShader(m_pTestClothGS.get(),
