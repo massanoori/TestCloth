@@ -6,6 +6,8 @@
 class Object
 {
 public:
+	virtual ~Object() {}
+
 	// update object by one frame
 	void Update();
 

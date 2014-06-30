@@ -7,6 +7,7 @@
 //--------------------------------------------------------------------------------------
 #include "stdafx.h"
 #include "ObjectList.h"
+#include "TestClothObject.h"
 #include <memory>
 
 #pragma warning( disable : 4100 )
@@ -16,7 +17,7 @@ using namespace DirectX;
 // module-local variables and definitions
 namespace
 {
-	ObjectList g_ObjectList;
+	ObjectList* g_pObjectList;
 
 	class TestObject : public Object
 	{
@@ -56,6 +57,10 @@ bool CALLBACK ModifyDeviceSettings(DXUTDeviceSettings* pDeviceSettings, void* pU
 //--------------------------------------------------------------------------------------
 HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
+	// initialize object list
+	g_pObjectList->AddObject(MakeObjectHandle<TestObject>());
+	g_pObjectList->AddObject(CreateTestClothObject());
+
 	return S_OK;
 }
 
@@ -74,7 +79,7 @@ HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChai
 //--------------------------------------------------------------------------------------
 void CALLBACK OnFrameMove(double fTime, float fElapsedTime, void* pUserContext)
 {
-	g_ObjectList.Update();
+	g_pObjectList->Update();
 }
 
 
@@ -90,7 +95,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	auto pDSV = DXUTGetD3D11DepthStencilView();
 	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
 
-	g_ObjectList.Render();
+	g_pObjectList->Render();
 }
 
 
@@ -154,8 +159,9 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 #endif
 
-	g_ObjectList.Initialize();
-	g_ObjectList.AddObject(MakeObjectHandle<TestObject>());
+	ObjectList objectList;
+	objectList.Initialize();
+	g_pObjectList = &objectList;
 
 	// DXUT will create and use the best device
 	// that is available on the system depending on which D3D callbacks are set below

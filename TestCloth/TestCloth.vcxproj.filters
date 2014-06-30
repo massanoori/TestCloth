@@ -33,6 +33,9 @@
     <ClInclude Include="ObjectList.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="TestClothObject.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -42,6 +45,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="ObjectList.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="TestClothObject.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -57,5 +63,11 @@
     <Image Include="TestCloth.ico">
       <Filter>リソース ファイル</Filter>
     </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <FxCompile Include="TestCloth.hlsli" />
+    <FxCompile Include="TestClothVS.hlsl" />
+    <FxCompile Include="TestClothGS.hlsl" />
+    <FxCompile Include="TestClothPS.hlsl" />
   </ItemGroup>
 </Project>

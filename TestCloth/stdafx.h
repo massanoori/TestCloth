@@ -16,8 +16,9 @@
 // C ランタイム ヘッダー ファイル
 #include <stdlib.h>
 #include <malloc.h>
-#include <memory.h>
+#include <memory>
 #include <tchar.h>
+#include <cstdint>
 
 
 // TODO: プログラムに必要な追加ヘッダーをここで参照してください。
