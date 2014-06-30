@@ -1,12 +1,12 @@
 
 struct VS_INPUT
 {
-	uint ID : SV_VertexID;
+	uint id : SV_VertexID;
 };
 
 struct VS_OUTPUT
 {
-	float4 Position : POSITION;
+	uint id : POSITION;
 };
 
 struct GS_OUTPUT
