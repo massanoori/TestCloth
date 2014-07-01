@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="TestClothShader">
+      <UniqueIdentifier>{1136bc1a-55d5-4f8f-b1f3-4f7a52cbc456}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Text Include="ReadMe.txt" />
@@ -39,6 +42,9 @@
     <ClInclude Include="Globals.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="ComPtr.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -51,6 +57,9 @@
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="TestClothObject.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="ComPtr.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
   </ItemGroup>
@@ -68,9 +77,23 @@
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <FxCompile Include="TestCloth.hlsli" />
-    <FxCompile Include="TestClothVS.hlsl" />
-    <FxCompile Include="TestClothGS.hlsl" />
-    <FxCompile Include="TestClothPS.hlsl" />
+    <FxCompile Include="TestClothVS.hlsl">
+      <Filter>TestClothShader</Filter>
+    </FxCompile>
+    <FxCompile Include="TestClothPS.hlsl">
+      <Filter>TestClothShader</Filter>
+    </FxCompile>
+    <FxCompile Include="TestClothGS.hlsl">
+      <Filter>TestClothShader</Filter>
+    </FxCompile>
+    <FxCompile Include="TestCloth.hlsli">
+      <Filter>TestClothShader</Filter>
+    </FxCompile>
+    <FxCompile Include="TestClothInit.hlsl">
+      <Filter>TestClothShader</Filter>
+    </FxCompile>
+    <FxCompile Include="TestClothUpdate.hlsl">
+      <Filter>TestClothShader</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

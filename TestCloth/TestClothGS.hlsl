@@ -1,9 +1,7 @@
 #include "TestCloth.hlsli"
 
-ByteAddressBuffer InputPositions : register(t0);
-ByteAddressBuffer InputNormals : register(t1);
-#define FETCH_POSITION(id) asfloat(InputPositions.Load4((id) * 16))
-#define FETCH_NORMAL(id) asfloat(InputNormals.Load4((id) * 16))
+StructuredBuffer<float4> InputPositions : register(t0);
+StructuredBuffer<float4> InputNormals : register(t1);
 
 cbuffer cbTestClothMatrices : register(b0)
 {
@@ -33,54 +31,54 @@ void main(point VS_OUTPUT Input[1], inout TriangleStream<GS_OUTPUT> triStream)
 		float4 pos;
 		GS_OUTPUT Output;
 
-		pos = FETCH_POSITION(id - 1);
+		pos = InputPositions[id - 1];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = FETCH_NORMAL(id - 1);
+		Output.Normal = InputNormals[id - 1].xyz;
 		triStream.Append(Output);
 
-		pos = FETCH_POSITION(id);
+		pos = InputPositions[id];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = FETCH_NORMAL(id);
+		Output.Normal = InputNormals[id].xyz;
 		triStream.Append(Output);
 
-		pos = FETCH_POSITION(id - ClothResolution.x - 1);
+		pos = InputPositions[id - ClothResolution.x - 1];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = FETCH_NORMAL(id - ClothResolution.x - 1);
+		Output.Normal = InputNormals[id - ClothResolution.x - 1].xyz;
 		triStream.Append(Output);
 	
-		pos = FETCH_POSITION(id - ClothResolution.x);
+		pos = InputPositions[id - ClothResolution.x];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = FETCH_NORMAL(id - ClothResolution.x);
+		Output.Normal = InputNormals[id - ClothResolution.x].xyz;
 		triStream.Append(Output);
 
 		triStream.RestartStrip();
 
-		pos = FETCH_POSITION(id);
+		pos = InputPositions[id];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = -FETCH_NORMAL(id);
+		Output.Normal = -InputNormals[id].xyz;
 		triStream.Append(Output);
 
-		pos = FETCH_POSITION(id - 1);
+		pos = InputPositions[id - 1];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = -FETCH_NORMAL(id - 1);
+		Output.Normal = -InputNormals[id - 1].xyz;
 		triStream.Append(Output);
 
-		pos = FETCH_POSITION(id - ClothResolution.x);
+		pos = InputPositions[id - ClothResolution.x];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = -FETCH_NORMAL(id - ClothResolution.x);
+		Output.Normal = -InputNormals[id - ClothResolution.x].xyz;
 		triStream.Append(Output);
 
-		pos = FETCH_POSITION(id - ClothResolution.x - 1);
+		pos = InputPositions[id - ClothResolution.x - 1];
 		pos.w = 1.0f;
 		Output.Position = mul(mul(pos, WorldView), Projection);
-		Output.Normal = -FETCH_NORMAL(id - ClothResolution.x - 1);
+		Output.Normal = -InputNormals[id - ClothResolution.x - 1].xyz;
 		triStream.Append(Output);
 
 		triStream.RestartStrip();
