@@ -262,15 +262,15 @@ private:
 		constBufDesc.ByteWidth = sizeof(CB_TEST_CLOTH);
 		constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
 
-		ID3D11Buffer* pConstBuffer;
-		assert(SUCCEEDED(DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
-			nullptr, &pConstBuffer)));
+		ID3D11Buffer* pConstBuffer = nullptr;
+		SUCCEEDED(DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
+			nullptr, &pConstBuffer));
 		ComPtr<ID3D11Buffer>(pConstBuffer, false)
 			.swap(m_pTestClothConstants);
 
 		constBufDesc.ByteWidth = sizeof(CB_TEST_CLOTH_UPDATE);
-		assert(SUCCEEDED(DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
-			nullptr, &pConstBuffer)));
+		SUCCEEDED(DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
+			nullptr, &pConstBuffer));
 		ComPtr<ID3D11Buffer>(pConstBuffer, false)
 			.swap(m_pUpdateConstants);
 	}
@@ -283,10 +283,10 @@ private:
 		rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 		rasterizerDesc.DepthClipEnable = TRUE;
 
-		ID3D11RasterizerState* pRasterizerState;
-		assert(SUCCEEDED(DXUTGetD3D11Device()
+		ID3D11RasterizerState* pRasterizerState = nullptr;
+		SUCCEEDED(DXUTGetD3D11Device()
 			->CreateRasterizerState(&rasterizerDesc,
-			&pRasterizerState)));
+			&pRasterizerState));
 
 		ComPtr<ID3D11RasterizerState>(pRasterizerState, false)
 			.swap(m_pRasterizerState);

@@ -9,6 +9,7 @@
 
 #include "DXUT.h"
 #include "DXUTcamera.h"
+#include "DXUTgui.h"
 #include "SDKmisc.h"
 #include "ComPtr.h"
 

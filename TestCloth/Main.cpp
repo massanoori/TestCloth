@@ -17,8 +17,10 @@ using namespace DirectX;
 // module-local variables and definitions
 namespace
 {
-	ObjectList* g_pObjectList;
+	ObjectList* g_pObjectList = nullptr;
 	CModelViewerCamera g_Camera;
+	CDXUTDialogResourceManager g_DialogResManager;
+	std::unique_ptr<CDXUTTextHelper> g_pTextHelper = nullptr;
 
 	class TestObject : public Object
 	{
@@ -69,6 +71,11 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	// initialize camera
 	g_Camera.SetViewParams(XMVectorSet(-1.0f, 0.0f, -3.0f, 1.0f),
 		XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
+	
+	HRESULT hr;
+	V_RETURN(g_DialogResManager.OnD3D11CreateDevice(pd3dDevice, DXUTGetD3D11DeviceContext()));
+	g_pTextHelper.reset(new CDXUTTextHelper(pd3dDevice, DXUTGetD3D11DeviceContext(),
+		&g_DialogResManager, 16));
 
 	TestCloth::Desc testClothDesc;
 
@@ -87,6 +94,8 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 //--------------------------------------------------------------------------------------
 HRESULT CALLBACK OnD3D11ResizedSwapChain(ID3D11Device* pd3dDevice, IDXGISwapChain* pSwapChain, const DXGI_SURFACE_DESC* pBackBufferSurfaceDesc, void* pUserContext)
 {
+	HRESULT hr;
+	V_RETURN(g_DialogResManager.OnD3D11ResizedSwapChain(pd3dDevice, pBackBufferSurfaceDesc));
 	g_Camera.SetProjParams(XM_PI * 0.25f,
 		1.0f * pBackBufferSurfaceDesc->Width / pBackBufferSurfaceDesc->Height,
 		0.01f, 10000.0f);
@@ -116,6 +125,14 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 	pd3dImmediateContext->ClearDepthStencilView(pDSV, D3D11_CLEAR_DEPTH, 1.0, 0);
 
 	g_pObjectList->Render();
+
+	DXUT_BeginPerfEvent(DXUT_PERFEVENTCOLOR, L"HUD / Stats");
+	g_pTextHelper->Begin();
+	g_pTextHelper->SetInsertionPos(0, 0);
+	g_pTextHelper->DrawTextLine(DXUTGetFrameStats());
+	g_pTextHelper->DrawFormattedTextLine(L"%.2f fps", DXUTGetFPS());
+	g_pTextHelper->End();
+	DXUT_EndPerfEvent();
 }
 
 
@@ -124,6 +141,7 @@ void CALLBACK OnD3D11FrameRender(ID3D11Device* pd3dDevice, ID3D11DeviceContext* 
 //--------------------------------------------------------------------------------------
 void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
 {
+	g_DialogResManager.OnD3D11ReleasingSwapChain();
 }
 
 
@@ -132,6 +150,7 @@ void CALLBACK OnD3D11ReleasingSwapChain(void* pUserContext)
 //--------------------------------------------------------------------------------------
 void CALLBACK OnD3D11DestroyDevice(void* pUserContext)
 {
+	g_DialogResManager.OnD3D11DestroyDevice();
 }
 
 
