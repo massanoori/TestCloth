@@ -70,9 +70,13 @@ HRESULT CALLBACK OnD3D11CreateDevice(ID3D11Device* pd3dDevice, const DXGI_SURFAC
 	g_Camera.SetViewParams(XMVectorSet(-1.0f, 0.0f, -3.0f, 1.0f),
 		XMVectorSet(0.0f, 0.0f, 0.0f, 1.0f));
 
+	TestCloth::Desc testClothDesc;
+
 	// initialize object list
 	g_pObjectList->AddObject(MakeObjectHandle<TestObject>());
-	g_pObjectList->AddObject(CreateTestClothObject());
+
+	auto pObj = TestCloth::CreateObject(testClothDesc);
+	g_pObjectList->AddObject(pObj);
 
 	return S_OK;
 }
