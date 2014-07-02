@@ -205,31 +205,37 @@ int WINAPI wWinMain(_In_ HINSTANCE hInstance, _In_opt_ HINSTANCE hPrevInstance, 
 	// DXUT will create and use the best device
 	// that is available on the system depending on which D3D callbacks are set below
 
-	// Set general DXUT callbacks
-	DXUTSetCallbackFrameMove(OnFrameMove);
-	DXUTSetCallbackKeyboard(OnKeyboard);
-	DXUTSetCallbackMouse(OnMouse);
-	DXUTSetCallbackMsgProc(MsgProc);
-	DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
-	DXUTSetCallbackDeviceRemoved(OnDeviceRemoved);
+	try {
+		// Set general DXUT callbacks
+		DXUTSetCallbackFrameMove(OnFrameMove);
+		DXUTSetCallbackKeyboard(OnKeyboard);
+		DXUTSetCallbackMouse(OnMouse);
+		DXUTSetCallbackMsgProc(MsgProc);
+		DXUTSetCallbackDeviceChanging(ModifyDeviceSettings);
+		DXUTSetCallbackDeviceRemoved(OnDeviceRemoved);
 
-	// Set the D3D11 DXUT callbacks. Remove these sets if the app doesn't need to support D3D11
-	DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
-	DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
-	DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
-	DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
-	DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
-	DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
+		// Set the D3D11 DXUT callbacks. Remove these sets if the app doesn't need to support D3D11
+		DXUTSetCallbackD3D11DeviceAcceptable(IsD3D11DeviceAcceptable);
+		DXUTSetCallbackD3D11DeviceCreated(OnD3D11CreateDevice);
+		DXUTSetCallbackD3D11SwapChainResized(OnD3D11ResizedSwapChain);
+		DXUTSetCallbackD3D11FrameRender(OnD3D11FrameRender);
+		DXUTSetCallbackD3D11SwapChainReleasing(OnD3D11ReleasingSwapChain);
+		DXUTSetCallbackD3D11DeviceDestroyed(OnD3D11DestroyDevice);
 
-	// Perform any application-level initialization here
+		// Perform any application-level initialization here
 
-	DXUTInit(true, true, nullptr); // Parse the command line, show msgboxes on error, no extra command line params
-	DXUTSetCursorSettings(true, true); // Show the cursor and clip it when in full screen
-	DXUTCreateWindow(L"EmptyProject11");
+		DXUTInit(true, true, nullptr); // Parse the command line, show msgboxes on error, no extra command line params
+		DXUTSetCursorSettings(true, true); // Show the cursor and clip it when in full screen
+		DXUTCreateWindow(L"EmptyProject11");
 
-	// Only require 10-level hardware or later
-	DXUTCreateDevice(D3D_FEATURE_LEVEL_10_0, true, 640, 480);
-	DXUTMainLoop(); // Enter into the DXUT ren  der loop
+		// Only require 10-level hardware or later
+		DXUTCreateDevice(D3D_FEATURE_LEVEL_10_0, true, 640, 480);
+		DXUTMainLoop(); // Enter into the DXUT ren  der loop
+	}
+	catch (std::runtime_error& e)
+	{
+		MessageBoxA(nullptr, e.what(), nullptr, MB_ICONSTOP);
+	}
 
 	// Perform any application-level cleanup here
 

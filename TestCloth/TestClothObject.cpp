@@ -49,6 +49,7 @@ private:
 
 	static void InitializeBuffers(SimulationBuffers& buffers)
 	{
+		HRESULT hr;
 		D3D11_BUFFER_DESC bufferDesc;
 		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 
@@ -65,12 +66,20 @@ private:
 		bufferDesc.ByteWidth = sizeof(DirectX::XMFLOAT4) *
 			NDIM_HORIZONTAL * NDIM_VERTICAL;
 		bufferDesc.StructureByteStride = sizeof(DirectX::XMFLOAT4);
-		DXUTGetD3D11Device()->CreateBuffer(&bufferDesc, nullptr, &pBuffer);
+		hr = DXUTGetD3D11Device()->CreateBuffer(&bufferDesc, nullptr, &pBuffer);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create buffer");
+		}
 		ComPtr<ID3D11Buffer>(pBuffer, false)
 			.swap(buffers.ClothPositionBuffer);
 
 		// buffer for velocities
-		DXUTGetD3D11Device()->CreateBuffer(&bufferDesc, nullptr, &pBuffer);
+		hr = DXUTGetD3D11Device()->CreateBuffer(&bufferDesc, nullptr, &pBuffer);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create buffer");
+		}
 		ComPtr<ID3D11Buffer>(pBuffer, false)
 			.swap(buffers.ClothVelocityBuffer);
 
@@ -93,22 +102,40 @@ private:
 		ID3D11UnorderedAccessView* pUAV;
 
 		// positions
-		DXUTGetD3D11Device()->CreateShaderResourceView(buffers.ClothPositionBuffer.get(),
+		hr = DXUTGetD3D11Device()->CreateShaderResourceView(buffers.ClothPositionBuffer.get(),
 			&srvDesc, &pSRV);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create SRV");
+		}
 		ComPtr<ID3D11ShaderResourceView>(pSRV, false)
 			.swap(buffers.ClothPositionSRV);
-		DXUTGetD3D11Device()->CreateUnorderedAccessView(buffers.ClothPositionBuffer.get(),
+
+		hr = DXUTGetD3D11Device()->CreateUnorderedAccessView(buffers.ClothPositionBuffer.get(),
 			&uavDesc, &pUAV);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create UAV");
+		}
 		ComPtr<ID3D11UnorderedAccessView>(pUAV, false)
 			.swap(buffers.ClothPositionUAV);
 
 		// velocities
-		DXUTGetD3D11Device()->CreateShaderResourceView(buffers.ClothVelocityBuffer.get(),
+		hr = DXUTGetD3D11Device()->CreateShaderResourceView(buffers.ClothVelocityBuffer.get(),
 			&srvDesc, &pSRV);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create SRV");
+		}
 		ComPtr<ID3D11ShaderResourceView>(pSRV, false)
 			.swap(buffers.ClothVelocitySRV);
-		DXUTGetD3D11Device()->CreateUnorderedAccessView(buffers.ClothVelocityBuffer.get(),
+
+		hr = DXUTGetD3D11Device()->CreateUnorderedAccessView(buffers.ClothVelocityBuffer.get(),
 			&uavDesc, &pUAV);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create UAV");
+		}
 		ComPtr<ID3D11UnorderedAccessView>(pUAV, false)
 			.swap(buffers.ClothVelocityUAV);
 	}
@@ -144,7 +171,10 @@ private:
 		auto pCTX = DXUTGetD3D11DeviceContext();
 		D3D11_MAPPED_SUBRESOURCE subres;
 		ZeroMemory(&subres, sizeof(subres));
-		pCTX->Map(m_pUpdateConstants.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subres);
+		if (FAILED(pCTX->Map(m_pUpdateConstants.get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &subres)))
+		{
+			throw std::runtime_error("Failed to map constant buffer for update cloth");
+		}
 		memcpy(subres.pData, &cbTestCloth, sizeof(cbTestCloth));
 		pCTX->Unmap(m_pUpdateConstants.get(), 0);
 
@@ -188,7 +218,7 @@ private:
 			"vs_4_0", 0, 0,
 			&pShaderCode)))
 		{
-			return;
+			throw std::runtime_error("Failed to compile vertex shader");
 		}
 
 		ID3D11VertexShader* pVS;
@@ -196,13 +226,13 @@ private:
 			pShaderCode->GetBufferSize(), nullptr, &pVS)))
 		{
 			pShaderCode->Release();
-			return;
+			throw std::runtime_error("Failed to create vertex shader");
 		}
+
+		pShaderCode->Release();
 
 		ComPtr<ID3D11VertexShader>(pVS, false)
 			.swap(m_pTestClothVS);
-
-		pShaderCode->Release();
 	}
 
 	void InitializeGeometryShader()
@@ -212,7 +242,7 @@ private:
 		if (FAILED(DXUTCompileFromFile(L"TestClothGS.hlsl", nullptr, "main",
 			"gs_4_0", 0, 0, &pShaderCode)))
 		{
-			return;
+			throw std::runtime_error("Failed to compile geometry shader");
 		}
 
 		ID3D11GeometryShader* pGS;
@@ -220,7 +250,7 @@ private:
 			pShaderCode->GetBufferSize(), nullptr, &pGS)))
 		{
 			pShaderCode->Release();
-			return;
+			throw std::runtime_error("Failed to create geometry shader");
 		}
 
 		pShaderCode->Release();
@@ -236,7 +266,7 @@ private:
 		if (FAILED(DXUTCompileFromFile(L"TestClothPS.hlsl", nullptr,
 			"main", "ps_4_0", 0, 0, &pShaderCode)))
 		{
-			return;
+			throw std::runtime_error("Failed to compile pixel shader");
 		}
 
 		ID3D11PixelShader* pPS;
@@ -244,7 +274,7 @@ private:
 			pShaderCode->GetBufferSize(), nullptr, &pPS)))
 		{
 			pShaderCode->Release();
-			return;
+			throw std::runtime_error("Failed to create pixel shader");
 		}
 
 		pShaderCode->Release();
@@ -255,6 +285,8 @@ private:
 
 	void InitializeConstantBuffer()
 	{
+		HRESULT hr;
+
 		D3D11_BUFFER_DESC constBufDesc;
 		ZeroMemory(&constBufDesc, sizeof(constBufDesc));
 		constBufDesc.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
@@ -263,20 +295,29 @@ private:
 		constBufDesc.Usage = D3D11_USAGE_DYNAMIC;
 
 		ID3D11Buffer* pConstBuffer = nullptr;
-		SUCCEEDED(DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
-			nullptr, &pConstBuffer));
+		hr = DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
+			nullptr, &pConstBuffer);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create constant buffer for initialization");
+		}
 		ComPtr<ID3D11Buffer>(pConstBuffer, false)
 			.swap(m_pTestClothConstants);
 
 		constBufDesc.ByteWidth = sizeof(CB_TEST_CLOTH_UPDATE);
-		SUCCEEDED(DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
-			nullptr, &pConstBuffer));
+		hr = DXUTGetD3D11Device()->CreateBuffer(&constBufDesc,
+			nullptr, &pConstBuffer);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create constant buffer for update");
+		}
 		ComPtr<ID3D11Buffer>(pConstBuffer, false)
 			.swap(m_pUpdateConstants);
 	}
 
 	void InitializeRasterizerState()
 	{
+		HRESULT hr;
 		D3D11_RASTERIZER_DESC rasterizerDesc;
 		ZeroMemory(&rasterizerDesc, sizeof(rasterizerDesc));
 		rasterizerDesc.CullMode = D3D11_CULL_BACK;
@@ -284,9 +325,13 @@ private:
 		rasterizerDesc.DepthClipEnable = TRUE;
 
 		ID3D11RasterizerState* pRasterizerState = nullptr;
-		SUCCEEDED(DXUTGetD3D11Device()
+		hr = DXUTGetD3D11Device()
 			->CreateRasterizerState(&rasterizerDesc,
-			&pRasterizerState));
+			&pRasterizerState);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create rasterizer state");
+		}
 
 		ComPtr<ID3D11RasterizerState>(pRasterizerState, false)
 			.swap(m_pRasterizerState);
@@ -294,6 +339,8 @@ private:
 
 	void InitializeNormals()
 	{
+		HRESULT hr;
+
 		// buffer for normal
 		D3D11_BUFFER_DESC bufferDesc;
 		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
@@ -307,8 +354,12 @@ private:
 		bufferDesc.StructureByteStride = sizeof(DirectX::XMFLOAT4);
 
 		ID3D11Buffer* pBuffer;
-		DXUTGetD3D11Device()->CreateBuffer(&bufferDesc,
+		hr = DXUTGetD3D11Device()->CreateBuffer(&bufferDesc,
 			nullptr, &pBuffer);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create buffer");
+		}
 		ComPtr<ID3D11Buffer>(pBuffer, false)
 			.swap(m_pClothNormalBuffer);
 
@@ -321,8 +372,12 @@ private:
 		srvDesc.ViewDimension = D3D11_SRV_DIMENSION_BUFFER;
 
 		ID3D11ShaderResourceView* pSRV;
-		DXUTGetD3D11Device()->CreateShaderResourceView(pBuffer, &srvDesc,
+		hr = DXUTGetD3D11Device()->CreateShaderResourceView(pBuffer, &srvDesc,
 			&pSRV);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create SRV");
+		}
 		ComPtr<ID3D11ShaderResourceView>(pSRV, false)
 			.swap(m_pClothNormalSRV);
 
@@ -335,32 +390,40 @@ private:
 		uavDesc.ViewDimension = D3D11_UAV_DIMENSION_BUFFER;
 
 		ID3D11UnorderedAccessView* pUAV;
-		DXUTGetD3D11Device()->CreateUnorderedAccessView(pBuffer, &uavDesc,
+		hr = DXUTGetD3D11Device()->CreateUnorderedAccessView(pBuffer, &uavDesc,
 			&pUAV);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create UAV");
+		}
 		ComPtr<ID3D11UnorderedAccessView>(pUAV, false)
 			.swap(m_pClothNormalUAV);
 	}
 
 	void InitializeBufferContents()
 	{
+		HRESULT hr;
+
 		ID3DBlob* pShaderBuffer;
-		if (FAILED(DXUTCompileFromFile(L"TestClothInit.hlsl", nullptr, "main",
-			"cs_5_0", 0, 0, &pShaderBuffer)))
+		hr = DXUTCompileFromFile(L"TestClothInit.hlsl", nullptr, "main",
+			"cs_5_0", 0, 0, &pShaderBuffer);
+		if (FAILED(hr))
 		{
-			return;
+			throw std::runtime_error("Failed to compile compute shader");
 		}
 
-		ID3D11ComputeShader* pShader;
-		if (FAILED(DXUTGetD3D11Device()->CreateComputeShader(
+		ID3D11ComputeShader* pShaderRaw;
+		hr = DXUTGetD3D11Device()->CreateComputeShader(
 			pShaderBuffer->GetBufferPointer(),
 			pShaderBuffer->GetBufferSize(),
-			nullptr, &pShader)))
+			nullptr, &pShaderRaw);
+		if (FAILED(hr))
 		{
 			pShaderBuffer->Release();
-			return;
+			throw std::runtime_error("Failed to create compute shader");
 		}
-
 		pShaderBuffer->Release();
+		ComPtr<ID3D11ComputeShader> pShader(pShaderRaw, false);
 
 		struct CB_TEST_CLOTH_INIT
 		{
@@ -376,7 +439,7 @@ private:
 		cbTestClothInit.ClothResolution.x = NDIM_HORIZONTAL;
 		cbTestClothInit.ClothResolution.y = NDIM_VERTICAL;
 
-		ID3D11Buffer* pConstBuffer;
+		ID3D11Buffer* pConstBufferRaw;
 		D3D11_BUFFER_DESC bufferDesc;
 		ZeroMemory(&bufferDesc, sizeof(bufferDesc));
 		bufferDesc.ByteWidth = sizeof(cbTestClothInit);
@@ -386,8 +449,13 @@ private:
 		D3D11_SUBRESOURCE_DATA subresData;
 		ZeroMemory(&subresData, sizeof(subresData));
 		subresData.pSysMem = &cbTestClothInit;
-		DXUTGetD3D11Device()->CreateBuffer(&bufferDesc,
-			&subresData, &pConstBuffer);
+		hr = DXUTGetD3D11Device()->CreateBuffer(&bufferDesc,
+			&subresData, &pConstBufferRaw);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to create buffer");
+		}
+		ComPtr<ID3D11Buffer> pConstBuffer(pConstBufferRaw, false);
 
 		ID3D11UnorderedAccessView* pUAVs[2] = {
 			m_SimBuffers[0].ClothPositionUAV.get(),
@@ -395,21 +463,18 @@ private:
 		};
 
 		auto pCTX = DXUTGetD3D11DeviceContext();
-		pCTX->CSSetShader(pShader, nullptr, 0);
-		pCTX->CSSetConstantBuffers(0, 1, &pConstBuffer);
+		pCTX->CSSetShader(pShader.get(), nullptr, 0);
+		pCTX->CSSetConstantBuffers(0, 1, &pConstBufferRaw);
 		pCTX->CSSetUnorderedAccessViews(0, 2, pUAVs, nullptr);
 
 		pCTX->Dispatch(1, 64, 1);
 
-		pConstBuffer->Release();
-		pShader->Release();
-
 		pUAVs[0] = nullptr;
 		pUAVs[1] = nullptr;
-		pConstBuffer = nullptr;
+		pConstBufferRaw = nullptr;
 
 		pCTX->CSSetShader(nullptr, nullptr, 0);
-		pCTX->CSSetConstantBuffers(0, 1, &pConstBuffer);
+		pCTX->CSSetConstantBuffers(0, 1, &pConstBufferRaw);
 		pCTX->CSSetUnorderedAccessViews(0, 2, pUAVs, nullptr);
 	}
 
@@ -418,7 +483,7 @@ private:
 		ID3DBlob* pShaderBuffer;
 		if (FAILED(DXUTCompileFromFile(L"TestClothUpdate.hlsl", nullptr, "main", "cs_5_0", 0, 0, &pShaderBuffer)))
 		{
-			return;
+			throw std::runtime_error("Failed to compile compute shader");
 		}
 
 		ID3D11ComputeShader* pShader;
@@ -426,7 +491,7 @@ private:
 			pShaderBuffer->GetBufferSize(), nullptr, &pShader)))
 		{
 			pShaderBuffer->Release();
-			return;
+			throw std::runtime_error("Failed to create compute shader");
 		}
 
 		pShaderBuffer->Release();
@@ -472,13 +537,19 @@ private:
 
 	void RenderImpl() const override
 	{
+		HRESULT hr;
+
 		auto pCTX = DXUTGetD3D11DeviceContext();
 
 		// update constant buffer
 		D3D11_MAPPED_SUBRESOURCE cbTestClothRes;
-		pCTX->Map(m_pTestClothConstants.get(),
+		hr = pCTX->Map(m_pTestClothConstants.get(),
 			0, D3D11_MAP_WRITE_DISCARD, 0,
 			&cbTestClothRes);
+		if (FAILED(hr))
+		{
+			throw std::runtime_error("Failed to map constant buffer");
+		}
 		auto pCamera = GetGlobalCamera();
 		auto& cbTestCloth =
 			*reinterpret_cast<CB_TEST_CLOTH*>(cbTestClothRes.pData);
